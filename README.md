@@ -1,4 +1,4 @@
-# evenly
+# paynote
 
 A new Flutter project.
 

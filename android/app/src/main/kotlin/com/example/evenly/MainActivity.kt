@@ -1,4 +1,4 @@
-package com.example.evenly
+package com.example.paynote
 
 import io.flutter.embedding.android.FlutterActivity
 
