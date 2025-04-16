@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:paynote/history.dart';
 
 class Nav extends StatelessWidget {
   final Function(int) onTap;
@@ -34,12 +33,7 @@ class Nav extends StatelessWidget {
                 size: 35,
                 color: selectedIndex == 1 ? Colors.blue : Colors.grey,
               ),
-              onPressed: (){
-                MaterialPageRoute route = MaterialPageRoute(
-                  builder: (context) => const History(),
-                );
-                Navigator.pushReplacement(context, route);
-              },
+              onPressed: () => onTap(1),
             ),
           ],
         ),

@@ -5,9 +5,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:paynote/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:paynote/transaction.dart';
 import 'widgets/nav.dart';
-import 'register.dart';
+import 'package:paynote/addtransaction.dart';
+import 'package:paynote/history.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -23,22 +23,15 @@ class _HomeState extends State<Home> {
   List<dynamic> borrowed = [];
   List<dynamic> lent = [];
 
-  int _selectedIndex = 0;
+  final int _selectedIndex = 0;
 
   void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
     if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Home()),
-      );
+      // Stay on the Home page
     } else if (index == 1) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Register()),
+        MaterialPageRoute(builder: (context) => const History()),
       );
     }
   }
@@ -199,6 +192,7 @@ class _HomeState extends State<Home> {
                       final name = contact['name'] ?? "Unknown";
                       final phone = contact['phone'] ?? "No phone number";
                       final totalBorrowed = contact['totalBorrowed'] ?? 0;
+                      final transactionType = "borrowed";
 
                       return Card(
                         margin: const EdgeInsets.symmetric(
@@ -214,9 +208,11 @@ class _HomeState extends State<Home> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => Transaction(
+                                    (context) => AddTransaction(
                                       phone: phone,
                                       contactName: name,
+                                      type: transactionType,
+                                      amount: totalBorrowed
                                     ),
                               ),
                             );
@@ -290,6 +286,7 @@ class _HomeState extends State<Home> {
                       final name = contact['name'] ?? "Unknown";
                       final phone = contact['phone'] ?? "No phone number";
                       final totalLent = contact['totalLent'] ?? 0;
+                      final transactionType = "lent";
 
                       return Card(
                         margin: const EdgeInsets.symmetric(
@@ -305,9 +302,11 @@ class _HomeState extends State<Home> {
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => Transaction(
+                                    (context) => AddTransaction(
                                       phone: phone,
                                       contactName: name,
+                                      type: transactionType,
+                                      amount: totalLent
                                     ),
                               ),
                             );
@@ -351,7 +350,7 @@ class _HomeState extends State<Home> {
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
-          debugPrint("Hello world");
+          
         },
         child: const Icon(Icons.add, size: 35),
       ),

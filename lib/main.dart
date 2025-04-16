@@ -51,19 +51,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    checkToken();
-  }
-
-  Future<void> checkToken() async {
-    final prfs = await SharedPreferences.getInstance();
-    final String? token = prfs.getString('token');
-    if (token != null) {
-      if (!mounted) return; // Ensure the widget is still mounted
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Home()),
-      );
-    }
   }
 
   Future<void> login() async {

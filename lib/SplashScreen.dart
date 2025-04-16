@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:paynote/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:paynote/home.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,12 +23,21 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void whereToGo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("token");
+    if (!mounted) return;
+    if(token == null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MyHomePage(title: "PayNote")),
       );
+    } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Home()),
+        );
+      }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:paynote/widgets/nav.dart';
-import 'package:paynote/home.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paynote/profile.dart';
-import 'package:paynote/widgets/bottomsheet.dart';
-import 'package:get/get.dart';
+import 'package:paynote/home.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -98,13 +96,9 @@ class _HistoryState extends State<History> {
     fetchHistory(); // Fetch history when the page loads
   }
 
-  int _selectedIndex = 1; // Set the default selected index for History
+  final int _selectedIndex = 1; // Set the default selected index for History
 
   void _onNavTap(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
     if (index == 0) {
       Navigator.pushReplacement(
         context,
@@ -247,9 +241,8 @@ class _HistoryState extends State<History> {
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
-          Get.bottomSheet(const Bottomsheet(), isScrollControlled: true);
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, size: 35),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Nav(onTap: _onNavTap, selectedIndex: _selectedIndex),
