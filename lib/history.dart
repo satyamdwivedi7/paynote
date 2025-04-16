@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paynote/profile.dart';
+import 'package:paynote/widgets/bottomsheet.dart';
+import 'package:get/get.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -23,6 +25,7 @@ class _HistoryState extends State<History> {
     final baseUri = dotenv.env['BASE_URI'];
 
     if (baseUri == null || baseUri.isEmpty) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Configuration Error",
         message: "BASE_URI is not defined in the .env file",
@@ -40,6 +43,7 @@ class _HistoryState extends State<History> {
       final String? token = prefs.getString('token');
 
       if (token == null) {
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Authentication Error",
           message: "You are not logged in. Please log in again.",
@@ -60,12 +64,14 @@ class _HistoryState extends State<History> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         setState(() {
           transactions = data;
           isLoading = false;
         });
       } else {
         final errorData = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to fetch history.",
@@ -75,6 +81,7 @@ class _HistoryState extends State<History> {
         ).show(context);
       }
     } catch (e) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Error",
         message: "An unexpected error occurred: ${e.toString()}",
@@ -240,7 +247,7 @@ class _HistoryState extends State<History> {
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
-          // Add your action here
+          Get.bottomSheet(const Bottomsheet(), isScrollControlled: true);
         },
         child: const Icon(Icons.add),
       ),

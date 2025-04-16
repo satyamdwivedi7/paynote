@@ -5,7 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:paynote/SplashScreen.dart';
+import 'package:paynote/splashscreen.dart';
 import 'package:paynote/home.dart';
 import 'package:paynote/register.dart';
 
@@ -54,15 +54,15 @@ class _MyHomePageState extends State<MyHomePage> {
     checkToken();
   }
 
-  Future<void> checkToken() async{
+  Future<void> checkToken() async {
     final prfs = await SharedPreferences.getInstance();
     final String? token = prfs.getString('token');
     if (token != null) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const Home()),
       );
-      return;
     }
   }
 

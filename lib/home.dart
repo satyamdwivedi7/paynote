@@ -47,6 +47,7 @@ class _HomeState extends State<Home> {
     final baseUri = dotenv.env['BASE_URI'];
 
     if (baseUri == null || baseUri.isEmpty) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Configuration Error",
         message: "BASE_URI is not defined in the .env file",
@@ -64,6 +65,7 @@ class _HomeState extends State<Home> {
       final token = prefs.getString('token');
 
       if (token == null) {
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Authentication Error",
           message: "Token not found. Please log in again.",
@@ -84,6 +86,7 @@ class _HomeState extends State<Home> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         setState(() {
           totalBorrowed = data['totalBorrowed'] ?? 0;
           totalLent = data['totalLent'] ?? 0;
@@ -93,6 +96,7 @@ class _HomeState extends State<Home> {
         });
       } else {
         final errorData = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to load contacts.",
@@ -105,6 +109,7 @@ class _HomeState extends State<Home> {
         });
       }
     } catch (e) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Error",
         message: "An unexpected error occurred: ${e.toString()}",
@@ -191,6 +196,10 @@ class _HomeState extends State<Home> {
 
                     // Borrowed Contacts
                     ...borrowed.map((contact) {
+                      final name = contact['name'] ?? "Unknown";
+                      final phone = contact['phone'] ?? "No phone number";
+                      final totalBorrowed = contact['totalBorrowed'] ?? 0;
+
                       return Card(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -206,8 +215,8 @@ class _HomeState extends State<Home> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => Transaction(
-                                      phone: contact['phone'],
-                                      contactName: contact['name'],
+                                      phone: phone,
+                                      contactName: name,
                                     ),
                               ),
                             );
@@ -219,21 +228,21 @@ class _HomeState extends State<Home> {
                               196,
                               196,
                             ),
-                            child: Text(contact['name'][0].toUpperCase()),
+                            child: Text(name[0].toUpperCase()),
                           ),
                           title: Text(
-                            contact['name'],
+                            name,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           subtitle: Text(
-                            contact['phone'] ?? "No phone number",
+                            phone,
                             style: const TextStyle(fontSize: 14),
                           ),
                           trailing: Text(
-                            contact['totalBorrowed'].toString(),
+                            totalBorrowed.toString(),
                             style: const TextStyle(
                               color: Colors.red,
                               fontSize: 15,
@@ -278,6 +287,10 @@ class _HomeState extends State<Home> {
 
                     // Lent Contacts
                     ...lent.map((contact) {
+                      final name = contact['name'] ?? "Unknown";
+                      final phone = contact['phone'] ?? "No phone number";
+                      final totalLent = contact['totalLent'] ?? 0;
+
                       return Card(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -293,8 +306,8 @@ class _HomeState extends State<Home> {
                               MaterialPageRoute(
                                 builder:
                                     (context) => Transaction(
-                                      phone: contact['phone'],
-                                      contactName: contact['name'],
+                                      phone: phone,
+                                      contactName: name,
                                     ),
                               ),
                             );
@@ -306,21 +319,21 @@ class _HomeState extends State<Home> {
                               196,
                               196,
                             ),
-                            child: Text(contact['name'][0].toUpperCase()),
+                            child: Text(name[0].toUpperCase()),
                           ),
                           title: Text(
-                            contact['name'],
+                            name,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           subtitle: Text(
-                            contact['phone'] ?? "No phone number",
+                            phone,
                             style: const TextStyle(fontSize: 14),
                           ),
                           trailing: Text(
-                            contact['totalLent'].toString(),
+                            totalLent.toString(),
                             style: const TextStyle(
                               color: Colors.green,
                               fontSize: 15,
@@ -337,8 +350,10 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
-        onPressed: () {},
-        child: const Icon(Icons.add),
+        onPressed: () {
+          debugPrint("Hello world");
+        },
+        child: const Icon(Icons.add, size: 35),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: Nav(onTap: _onNavTap, selectedIndex: _selectedIndex),

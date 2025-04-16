@@ -29,6 +29,7 @@ class _ProfileState extends State<Profile> {
     final baseUri = dotenv.env['BASE_URI'];
 
     if (baseUri == null || baseUri.isEmpty) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Configuration Error",
         message: "BASE_URI is not defined in the .env file",
@@ -47,6 +48,7 @@ class _ProfileState extends State<Profile> {
       final String? token = prefs.getString('token');
 
       if (userId == null || token == null) {
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Authentication Error",
           message: "User is not logged in. Please log in again.",
@@ -68,6 +70,7 @@ class _ProfileState extends State<Profile> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         setState(() {
           username = data['username'] ?? "";
           email = data['email'] ?? "";
@@ -76,6 +79,7 @@ class _ProfileState extends State<Profile> {
         });
       } else {
         final errorData = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to fetch user info.",
@@ -85,6 +89,7 @@ class _ProfileState extends State<Profile> {
         ).show(context);
       }
     } catch (e) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Error",
         message: "An unexpected error occurred: ${e.toString()}",
@@ -98,7 +103,7 @@ class _ProfileState extends State<Profile> {
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear(); // Clear all data from SharedPreferences
-    if (!mounted) return; // Check if the widget is still mounted
+    if (!mounted) return; // Ensure the widget is still mounted
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => MyHomePage(title: "PayNote")),
@@ -190,7 +195,12 @@ class _ProfileState extends State<Profile> {
                       child: ElevatedButton.icon(
                         onPressed: logout,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 171, 14, 3),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            171,
+                            14,
+                            3,
+                          ),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           elevation: 10,

@@ -44,6 +44,7 @@ class _TransactionState extends State<Transaction> {
       final token = prefs.getString("token");
 
       if (token == null) {
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Authentication Error",
           message: "You are not logged in. Please log in first.",
@@ -71,6 +72,7 @@ class _TransactionState extends State<Transaction> {
         });
       } else {
         final errorData = jsonDecode(response.body);
+        if (!mounted) return; // Ensure the widget is still mounted
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to load transactions.",
@@ -83,6 +85,7 @@ class _TransactionState extends State<Transaction> {
         });
       }
     } catch (e) {
+      if (!mounted) return; // Ensure the widget is still mounted
       Flushbar(
         title: "Error",
         message: "An unexpected error occurred: ${e.toString()}",

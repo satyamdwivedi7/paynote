@@ -21,6 +21,7 @@ class Nav extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.analytics_outlined,
+                size: 35,
                 color: selectedIndex == 0 ? Colors.blue : Colors.grey,
               ),
               onPressed: () => onTap(0),
@@ -30,6 +31,7 @@ class Nav extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.history,
+                size: 35,
                 color: selectedIndex == 1 ? Colors.blue : Colors.grey,
               ),
               onPressed: (){
