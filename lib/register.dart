@@ -8,10 +8,10 @@ class Register extends StatefulWidget {
   const Register({super.key});
 
   @override
-  _RegisterState createState() => _RegisterState();
+  RegisterState createState() => RegisterState();
 }
 
-class _RegisterState extends State<Register> {
+class RegisterState extends State<Register> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -155,6 +155,7 @@ class _RegisterState extends State<Register> {
             ),
             const SizedBox(height: 16),
             TextField(
+              keyboardType: TextInputType.phone,
               controller: phoneController,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.phone),

@@ -3,7 +3,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:another_flushbar/flushbar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:paynote/SplashScreen.dart';
+import 'package:paynote/home.dart';
 import 'package:paynote/register.dart';
 
 Future<void> main() async {
@@ -11,7 +14,6 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -46,10 +48,27 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    checkToken();
+  }
+
+  Future<void> checkToken() async{
+    final prfs = await SharedPreferences.getInstance();
+    final String? token = prfs.getString('token');
+    if (token != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Home()),
+      );
+      return;
+    }
+  }
+
   Future<void> login() async {
     final String username = userController.text.trim();
     final String password = passwordController.text.trim();
-
     final baseUri = dotenv.env['BASE_URI'];
 
     if (username.isEmpty || password.isEmpty) {
@@ -78,22 +97,16 @@ class _MyHomePageState extends State<MyHomePage> {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"username": username, "password": password}),
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data.containsKey('message') && data.containsKey('token')) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', data['token']);
+          await prefs.setString('userId', data['userId']);
           if (!mounted) return;
-          Flushbar(
-            title: "Login Successful",
-            message: data['message'],
-            flushbarPosition: FlushbarPosition.TOP,
-            icon: const Icon(Icons.check_circle, color: Colors.green),
-            duration: const Duration(seconds: 3),
-          ).show(context);
-
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const SplashScreen()),
+            MaterialPageRoute(builder: (context) => const Home()),
           );
         } else {
           throw Exception("Unexpected response format.");
