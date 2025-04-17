@@ -63,13 +63,13 @@ class _TransactionPageState extends State<TransactionPage> {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
+          "name" : widget.name,
           "phone": widget.phone,
           "amount": amountController.text,
           "type": widget.type,
           "note": noteController.text,
         }),
       );
-
       if (response.statusCode == 200) {
         // Clear input boxes
         amountController.clear();
@@ -114,12 +114,6 @@ class _TransactionPageState extends State<TransactionPage> {
           icon: Icon(Icons.close, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          Icon(Icons.access_time, color: textColor),
-          const SizedBox(width: 10),
-          Icon(Icons.article_outlined, color: textColor),
-          const SizedBox(width: 15),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(

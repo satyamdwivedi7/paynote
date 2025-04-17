@@ -241,6 +241,12 @@ class _HistoryState extends State<History> {
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
         onPressed: () {
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => const AddContact(),
+          //   ),
+          // );
         },
         child: const Icon(Icons.add, size: 35),
       ),

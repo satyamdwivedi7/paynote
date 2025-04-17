@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:paynote/transaction.dart';
 import 'package:paynote/transactionpage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class AddTransaction extends StatefulWidget {
   final String phone;
@@ -29,6 +33,67 @@ class _AddTransactionState extends State<AddTransaction> {
     transactionType = widget.type;
   }
 
+  Future<void> makeTransaction() async {
+    final baseUri = dotenv.env['BASE_URI'];
+    if (baseUri == null || baseUri.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("BASE_URI is not defined in the .env file"),
+        ),
+      );
+      return;
+    }
+
+    final uri = Uri.parse('$baseUri/transaction/create');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Authentication token not found")),
+      );
+      return;
+    }
+
+    try {
+      // Determine the opposite type
+      final oppositeType = widget.type == 'lent' ? 'borrowed' : 'lent';
+
+      final response = await http.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          "phone": widget.phone,
+          "amount": widget.amount,
+          "type": oppositeType, // Use the opposite type
+          "note": "Debt Closed",
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Transaction successful!")),
+        );
+        Navigator.pop(context); // Go back to the previous screen
+      } else {
+        if (!mounted) return;
+        final errorData = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorData['message'] ?? "Transaction failed")),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("An error occurred: $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isLent = transactionType.toLowerCase() == 'lent';
@@ -41,8 +106,7 @@ class _AddTransactionState extends State<AddTransaction> {
             width: double.infinity,
             padding: const EdgeInsets.only(top: 50, left: 16, right: 16),
             decoration: BoxDecoration(
-              color:
-            const Color(0xff5d8aa8),
+              color: const Color(0xff5d8aa8),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(40),
                 bottomRight: Radius.circular(40),
@@ -58,7 +122,10 @@ class _AddTransactionState extends State<AddTransaction> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.history, color: Colors.white),
+                      icon: const Icon(
+                        Icons.article_outlined,
+                        color: Colors.white,
+                      ),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -121,7 +188,12 @@ class _AddTransactionState extends State<AddTransaction> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TransactionPage(type: "lent", phone: widget.phone, name: widget.contactName,),
+                          builder:
+                              (context) => TransactionPage(
+                                type: "lent",
+                                phone: widget.phone,
+                                name: widget.contactName,
+                              ),
                         ),
                       );
                     },
@@ -144,7 +216,12 @@ class _AddTransactionState extends State<AddTransaction> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TransactionPage(type: "borrowed", phone: widget.phone, name: widget.contactName,),
+                          builder:
+                              (context) => TransactionPage(
+                                type: "borrowed",
+                                phone: widget.phone,
+                                name: widget.contactName,
+                              ),
                         ),
                       );
                     },
@@ -194,14 +271,8 @@ class _AddTransactionState extends State<AddTransaction> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "Transaction added for ${widget.contactName} as $transactionType",
-                    ),
-                  ),
-                );
-                Navigator.pop(context);
+                makeTransaction();
+                // Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,

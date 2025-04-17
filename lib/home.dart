@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:another_flushbar/flushbar.dart';
+import 'package:paynote/helpers/function.dart';
 import 'package:paynote/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/nav.dart';
@@ -212,7 +213,7 @@ class _HomeState extends State<Home> {
                                       phone: phone,
                                       contactName: name,
                                       type: transactionType,
-                                      amount: totalBorrowed
+                                      amount: totalBorrowed,
                                     ),
                               ),
                             );
@@ -306,7 +307,7 @@ class _HomeState extends State<Home> {
                                       phone: phone,
                                       contactName: name,
                                       type: transactionType,
-                                      amount: totalLent
+                                      amount: totalLent,
                                     ),
                               ),
                             );
@@ -349,9 +350,14 @@ class _HomeState extends State<Home> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         shape: const CircleBorder(),
-        onPressed: () {
-          
-        },
+        onPressed: () => pickContact(context),
+
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => const AddContact(),
+        //   ),
+        //);
         child: const Icon(Icons.add, size: 35),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
