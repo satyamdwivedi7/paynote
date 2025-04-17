@@ -107,7 +107,7 @@ class RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         titleTextStyle: const TextStyle(
           fontSize: 25,

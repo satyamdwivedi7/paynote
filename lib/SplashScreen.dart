@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:paynote/MainPage.dart';
 import 'package:paynote/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paynote/home.dart';
@@ -34,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Home()),
+          MaterialPageRoute(builder: (context) => MainPage()),
         );
       }
   }

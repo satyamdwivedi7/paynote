@@ -3,8 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
+import 'package:paynote/transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:paynote/profile.dart';
+import 'package:paynote/transaction.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -139,11 +140,12 @@ class _HistoryState extends State<History> {
                   final isLent = transaction['type'] == 'lent';
                   final formattedDate = formatDate(transaction['date']);
 
-                  // Safely access the contact name
+                  // Safely access the contact name and phone number
                   final contact =
                       transaction['contact']
                           as Map<String, dynamic>?; // Ensure it's a Map
                   final contactName = contact?['name'] ?? "Unknown";
+                  final contactPhone = contact?['phone'] ?? "Unknown";
 
                   return Card(
                     margin: const EdgeInsets.symmetric(
@@ -193,6 +195,19 @@ class _HistoryState extends State<History> {
                           ),
                         ],
                       ),
+                      onTap: () {
+                        // Navigate to TransactionPage with contact details
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => Transaction(
+                                  contactName: contactName,
+                                  phone: contactPhone,
+                                ),
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
