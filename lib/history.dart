@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:paynote/widgets/nav.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paynote/profile.dart';
-import 'package:paynote/home.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -96,19 +94,6 @@ class _HistoryState extends State<History> {
     fetchHistory(); // Fetch history when the page loads
   }
 
-  final int _selectedIndex = 1; // Set the default selected index for History
-
-  void _onNavTap(int index) {
-    if (index == 0) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Home()),
-      );
-    } else if (index == 1) {
-      // Stay on the History page
-    }
-  }
-
   String formatDate(String dateString) {
     final date = DateTime.parse(dateString).toLocal();
     return "${date.day} ${_monthName(date.month)}, ${date.year}";
@@ -135,30 +120,6 @@ class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        titleTextStyle: const TextStyle(
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
-        ),
-        centerTitle: true,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("History"),
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Profile()),
-                );
-              },
-              icon: const Icon(Icons.account_circle, size: 30),
-            ),
-          ],
-        ),
-      ),
       body:
           isLoading
               ? const Center(
@@ -236,22 +197,6 @@ class _HistoryState extends State<History> {
                   );
                 },
               ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        shape: const CircleBorder(),
-        onPressed: () {
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => const AddContact(),
-          //   ),
-          // );
-        },
-        child: const Icon(Icons.add, size: 35),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: Nav(onTap: _onNavTap, selectedIndex: _selectedIndex),
     );
   }
 }

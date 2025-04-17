@@ -6,8 +6,8 @@ import 'package:another_flushbar/flushbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:paynote/splashscreen.dart';
-import 'package:paynote/home.dart';
 import 'package:paynote/register.dart';
+import 'package:paynote/MainPage.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required before any async calls in main
@@ -93,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
           if (!mounted) return;
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Home()),
+            MaterialPageRoute(builder: (context) => const MainPage()),
           );
         } else {
           throw Exception("Unexpected response format.");

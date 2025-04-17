@@ -132,7 +132,7 @@ class _TransactionState extends State<Transaction> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         titleTextStyle: const TextStyle(
           fontSize: 25,

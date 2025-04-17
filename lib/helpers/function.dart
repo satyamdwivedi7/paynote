@@ -7,11 +7,10 @@ Future<void> pickContact(BuildContext context) async {
   final status = await Permission.contacts.request();
 
   if (!status.isGranted) {
-    // Permission denied
     showDialog(
       context: context,
       builder:
-          (context) => AlertDialog(
+          (_) => AlertDialog(
             title: const Text("Permission Denied"),
             content: const Text(
               "Please enable contact permissions in settings.",
@@ -31,6 +30,7 @@ Future<void> pickContact(BuildContext context) async {
   try {
     contacts = await FlutterContacts.getContacts(withProperties: true);
   } catch (e) {
+    if (!context.mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text("Failed to load contacts: $e")));
@@ -38,6 +38,7 @@ Future<void> pickContact(BuildContext context) async {
   }
 
   if (contacts.isEmpty) {
+    if (!context.mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text("No contacts available")));
@@ -46,98 +47,147 @@ Future<void> pickContact(BuildContext context) async {
 
   showDialog(
     context: context,
-    builder:
-        (context) => Dialog(
-          insetPadding: const EdgeInsets.all(10),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Select Contact",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: contacts.length,
-                    itemBuilder: (context, i) {
-                      final contact = contacts[i];
-                      return FutureBuilder<Contact?>(
-                        future: FlutterContacts.getContact(
-                          contact.id,
-                          withProperties: true,
-                        ),
-                        builder: (context, snapshot) {
-                          if (!snapshot.hasData) return const SizedBox();
-                          final fullContact = snapshot.data!;
-                          if (fullContact.phones.isEmpty)
-                            return const SizedBox();
+    builder: (_) => _ContactPickerDialog(contacts: contacts),
+  );
+}
 
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            elevation: 2,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    fullContact.displayName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ...fullContact.phones.map((phone) {
-                                    final sanitizedPhone = _sanitizePhoneNumber(
-                                      phone.number,
-                                    );
-                                    if (sanitizedPhone.length != 10) {
-                                      return const SizedBox();
-                                    }
-                                    return ListTile(
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(
-                                        sanitizedPhone,
-                                        style: const TextStyle(fontSize: 16),
-                                      ),
-                                      onTap: () {
-                                        Navigator.pop(context);
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder:
-                                                (context) => AddTransaction(
-                                                  phone: sanitizedPhone,
-                                                  contactName:
-                                                      fullContact.displayName,
-                                                  type: "borrowed",
-                                                  amount: 0,
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
+class _ContactPickerDialog extends StatefulWidget {
+  final List<Contact> contacts;
+
+  const _ContactPickerDialog({required this.contacts});
+
+  @override
+  State<_ContactPickerDialog> createState() => _ContactPickerDialogState();
+}
+
+class _ContactPickerDialogState extends State<_ContactPickerDialog> {
+  List<Contact> filteredContacts = [];
+  String searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    filteredContacts = widget.contacts;
+  }
+
+  void updateSearch(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredContacts =
+          widget.contacts.where((contact) {
+            final name = contact.displayName.toLowerCase();
+            return name.contains(query.toLowerCase());
+          }).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        width: double.infinity,
+        height: MediaQuery.of(context).size.height * 0.85,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            const Text(
+              "Select Contact",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              onChanged: updateSearch,
+              decoration: InputDecoration(
+                hintText: "Search contact...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black12),
                 ),
-              ],
+                filled: true,
+                fillColor: Colors.grey[100],
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child:
+                  filteredContacts.isEmpty
+                      ? const Center(child: Text("No contacts found."))
+                      : ListView.builder(
+                        itemCount: filteredContacts.length,
+                        itemBuilder: (context, index) {
+                          final contact = filteredContacts[index];
+                          return _buildContactTile(contact);
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactTile(Contact contact) {
+    if (contact.phones.isEmpty) return const SizedBox();
+
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          radius: 22,
+          backgroundColor: Colors.grey[300],
+          child: Text(
+            contact.displayName.isNotEmpty
+                ? contact.displayName[0].toUpperCase()
+                : "?",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
         ),
-  );
+        title: Text(
+          contact.displayName,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        children:
+            contact.phones.map((phone) {
+              final sanitizedPhone = _sanitizePhoneNumber(phone.number);
+              if (sanitizedPhone.length != 10) return const SizedBox();
+
+              return ListTile(
+                title: Text(sanitizedPhone),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => AddTransaction(
+                            phone: sanitizedPhone,
+                            contactName: contact.displayName,
+                            type: "borrowed",
+                            amount: 0,
+                          ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+      ),
+    );
+  }
 }
 
 String _sanitizePhoneNumber(String phoneNumber) {
