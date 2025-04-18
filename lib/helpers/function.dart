@@ -7,7 +7,6 @@ Future<void> pickContact(BuildContext context) async {
   final status = await Permission.contacts.request();
 
   if (!status.isGranted) {
-    
     showDialog(
       context: context,
       builder:
@@ -45,24 +44,29 @@ Future<void> pickContact(BuildContext context) async {
     ).showSnackBar(const SnackBar(content: Text("No contacts available")));
     return;
   }
-  
-  showDialog(
-    
+
+  showModalBottomSheet(
     context: context,
-    builder: (_) => _ContactPickerDialog(contacts: contacts),
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => _ContactPickerBottomSheet(contacts: contacts),
   );
 }
 
-class _ContactPickerDialog extends StatefulWidget {
+class _ContactPickerBottomSheet extends StatefulWidget {
   final List<Contact> contacts;
 
-  const _ContactPickerDialog({required this.contacts});
+  const _ContactPickerBottomSheet({required this.contacts});
 
   @override
-  State<_ContactPickerDialog> createState() => _ContactPickerDialogState();
+  State<_ContactPickerBottomSheet> createState() =>
+      _ContactPickerBottomSheetState();
 }
 
-class _ContactPickerDialogState extends State<_ContactPickerDialog> {
+class _ContactPickerBottomSheetState extends State<_ContactPickerBottomSheet> {
   List<Contact> filteredContacts = [];
   String searchQuery = '';
 
@@ -85,54 +89,65 @@ class _ContactPickerDialogState extends State<_ContactPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        width: double.infinity,
-        height: MediaQuery.of(context).size.height * 0.85,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              "Select Contact",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              onChanged: updateSearch,
-              decoration: InputDecoration(
-                hintText: "Search contact...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.black12),
+
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.85,
+      minChildSize: 0.6,
+      maxChildSize: 0.95,
+      builder:
+          (_, controller) => Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              children: [
+                Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.grey[100],
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
+                const SizedBox(height: 12),
+                const Text(
+                  "Select Contact",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-              ),
+                const SizedBox(height: 10),
+                TextField(
+                  onChanged: updateSearch,
+                  decoration: InputDecoration(
+                    hintText: "Search contact...",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.black12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[100],
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child:
+                      filteredContacts.isEmpty
+                          ? const Center(child: Text("No contacts found."))
+                          : ListView.builder(
+                            controller: controller,
+                            itemCount: filteredContacts.length,
+                            itemBuilder: (context, index) {
+                              final contact = filteredContacts[index];
+                              return _buildContactTile(contact);
+                            },
+                          ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child:
-                  filteredContacts.isEmpty
-                      ? const Center(child: Text("No contacts found."))
-                      : ListView.builder(
-                        itemCount: filteredContacts.length,
-                        itemBuilder: (context, index) {
-                          final contact = filteredContacts[index];
-                          return _buildContactTile(contact);
-                        },
-                      ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 

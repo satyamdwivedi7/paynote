@@ -64,7 +64,7 @@ class _MainPageState extends State<MainPage> {
         notchSmoothness: NotchSmoothness.softEdge,
         backgroundColor: Colors.green,
         activeColor: Colors.white,
-        inactiveColor: Colors.grey,
+        inactiveColor: Colors.blueGrey,
         onTap: _onItemTapped,
       ),
     );

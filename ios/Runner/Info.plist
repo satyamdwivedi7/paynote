@@ -2,8 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>NSFaceIDUsageDescription</key>
+		<string>We need your FaceID to authenticate</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>We need access to your photos for FaceID</string>
+
 		<key>NSContactsUsageDescription</key>
 		<string>This app requires contacts access to select contacts for transactions.</string>
+		
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
