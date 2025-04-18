@@ -186,7 +186,7 @@ class RegisterState extends State<Register> {
               child: ElevatedButton(
                 onPressed: register,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                   shadowColor: Colors.blueGrey,
                   elevation: 10,

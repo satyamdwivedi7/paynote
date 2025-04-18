@@ -54,7 +54,6 @@ class _TransactionState extends State<Transaction> {
         ).show(context);
         return;
       }
-
       final response = await http.post(
         url,
         headers: {
@@ -73,6 +72,7 @@ class _TransactionState extends State<Transaction> {
       } else {
         final errorData = jsonDecode(response.body);
         if (!mounted) return; // Ensure the widget is still mounted
+        print(errorData);
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to load transactions.",
@@ -174,7 +174,7 @@ class _TransactionState extends State<Transaction> {
                         size: 30,
                       ),
                       title: Text(
-                        transaction['note'] ?? "No note",
+                        transaction['note'] ?? "Unknown",
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

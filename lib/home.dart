@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:paynote/profile.dart';
-import 'package:paynote/addtransaction.dart';// Assuming you have this
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:another_flushbar/flushbar.dart';
 import 'dart:convert';
+import 'package:paynote/addtransaction.dart';
+
+// RouteObserver to detect when HomePage appears again
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -14,7 +17,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with RouteAware {
   bool isLoading = true;
   int totalBorrowed = 0;
   int totalLent = 0;
@@ -51,30 +54,44 @@ class _HomeState extends State<Home> {
       return;
     }
 
-    final response = await http.get(
-      Uri.parse("$baseUri/contact/"),
-      headers: {
-        "Authorization": "Bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+    try {
+      final response = await http.get(
+        Uri.parse("$baseUri/contact/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (!mounted) return;
-      setState(() {
-        totalBorrowed = data['totalBorrowed'] ?? 0;
-        totalLent = data['totalLent'] ?? 0;
-        borrowed = data['borrowed'] ?? [];
-        lent = data['lent'] ?? [];
-        isLoading = false;
-      });
-    } else {
-      final errorData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (!mounted) return;
+        setState(() {
+          totalBorrowed = data['totalBorrowed'] ?? 0;
+          totalLent = data['totalLent'] ?? 0;
+          borrowed = data['borrowed'] ?? [];
+          lent = data['lent'] ?? [];
+          isLoading = false;
+        });
+      } else {
+        final errorData = jsonDecode(response.body);
+        if (!mounted) return;
+        Flushbar(
+          title: "Error",
+          message: errorData['message'] ?? "Failed to load contacts.",
+          flushbarPosition: FlushbarPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          duration: const Duration(seconds: 3),
+        ).show(context);
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } catch (e) {
       if (!mounted) return;
       Flushbar(
         title: "Error",
-        message: errorData['message'] ?? "Failed to load contacts.",
+        message: "Unexpected error: ${e.toString()}",
         flushbarPosition: FlushbarPosition.TOP,
         icon: const Icon(Icons.error, color: Colors.red),
         duration: const Duration(seconds: 3),
@@ -92,27 +109,49 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Called when coming back to Home page
+  @override
+  void didPopNext() {
+    getContacts(); // Refresh contacts when user returns
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body:
           isLoading
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    _buildSummaryCard("I owe", totalBorrowed, Colors.red),
-                    const SizedBox(height: 10),
-                    ...borrowed.map(
-                      (contact) => _buildContactTile(contact, "borrowed"),
-                    ),
-                    const SizedBox(height: 10),
-                    _buildSummaryCard("I am owed", totalLent, Colors.green),
-                    const SizedBox(height: 10),
-                    ...lent.map(
-                      (contact) => _buildContactTile(contact, "lent"),
-                    ),
-                  ],
+              : RefreshIndicator(
+                onRefresh: getContacts, // Pull-to-refresh
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    children: [
+                      _buildSummaryCard("I owe", totalBorrowed, Colors.red),
+                      const SizedBox(height: 10),
+                      ...borrowed.map(
+                        (contact) => _buildContactTile(contact, "borrowed"),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildSummaryCard("Owes me", totalLent, Colors.green),
+                      const SizedBox(height: 10),
+                      ...lent.map(
+                        (contact) => _buildContactTile(contact, "lent"),
+                      ),
+                    ],
+                  ),
                 ),
               ),
     );

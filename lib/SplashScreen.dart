@@ -4,7 +4,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:paynote/MainPage.dart';
 import 'package:paynote/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:paynote/home.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

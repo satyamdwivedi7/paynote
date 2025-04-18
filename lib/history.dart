@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:another_flushbar/flushbar.dart';
 import 'package:paynote/transaction.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:paynote/transaction.dart';
+import 'package:paynote/helpers/routeobserver.dart'; // Import RouteObserver
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -14,7 +14,7 @@ class History extends StatefulWidget {
   State<History> createState() => _HistoryState();
 }
 
-class _HistoryState extends State<History> {
+class _HistoryState extends State<History> with RouteAware {
   List<dynamic> transactions = [];
   bool isLoading = true;
 
@@ -22,10 +22,10 @@ class _HistoryState extends State<History> {
     final baseUri = dotenv.env['BASE_URI'];
 
     if (baseUri == null || baseUri.isEmpty) {
-      if (!mounted) return; // Ensure the widget is still mounted
+      if (!mounted) return;
       Flushbar(
         title: "Configuration Error",
-        message: "BASE_URI is not defined in the .env file",
+        message: "BASE_URI is not defined in .env",
         flushbarPosition: FlushbarPosition.TOP,
         icon: const Icon(Icons.warning, color: Colors.orange),
         duration: const Duration(seconds: 3),
@@ -40,7 +40,7 @@ class _HistoryState extends State<History> {
       final String? token = prefs.getString('token');
 
       if (token == null) {
-        if (!mounted) return; // Ensure the widget is still mounted
+        if (!mounted) return;
         Flushbar(
           title: "Authentication Error",
           message: "You are not logged in. Please log in again.",
@@ -61,14 +61,14 @@ class _HistoryState extends State<History> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (!mounted) return; // Ensure the widget is still mounted
+        if (!mounted) return;
         setState(() {
           transactions = data;
           isLoading = false;
         });
       } else {
         final errorData = jsonDecode(response.body);
-        if (!mounted) return; // Ensure the widget is still mounted
+        if (!mounted) return;
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to fetch history.",
@@ -78,7 +78,7 @@ class _HistoryState extends State<History> {
         ).show(context);
       }
     } catch (e) {
-      if (!mounted) return; // Ensure the widget is still mounted
+      if (!mounted) return;
       Flushbar(
         title: "Error",
         message: "An unexpected error occurred: ${e.toString()}",
@@ -92,7 +92,24 @@ class _HistoryState extends State<History> {
   @override
   void initState() {
     super.initState();
-    fetchHistory(); // Fetch history when the page loads
+    fetchHistory();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    fetchHistory(); // Reload transactions when user comes back
   }
 
   String formatDate(String dateString) {
@@ -121,97 +138,96 @@ class _HistoryState extends State<History> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-          isLoading
-              ? const Center(
-                child: CircularProgressIndicator(),
-              ) // Show loading indicator
-              : transactions.isEmpty
-              ? const Center(
-                child: Text(
-                  "No transactions found.",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              )
-              : ListView.builder(
-                itemCount: transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = transactions[index];
-                  final isLent = transaction['type'] == 'lent';
-                  final formattedDate = formatDate(transaction['date']);
+      body: RefreshIndicator(
+        onRefresh: fetchHistory,
+        child:
+            isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : transactions.isEmpty
+                ? const Center(
+                  child: Text(
+                    "No transactions found.",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                )
+                : ListView.builder(
+                  physics:
+                      const AlwaysScrollableScrollPhysics(), // allow pull to refresh even if list small
+                  itemCount: transactions.length,
+                  itemBuilder: (context, index) {
+                    final transaction = transactions[index];
+                    final isLent = transaction['type'] == 'lent';
+                    final formattedDate = formatDate(transaction['date']);
+                    final contact =
+                        transaction['contact'] as Map<String, dynamic>?;
+                    final contactName = contact?['name'] ?? "Unknown";
+                    final contactPhone = contact?['phone'] ?? "Unknown";
 
-                  // Safely access the contact name and phone number
-                  final contact =
-                      transaction['contact']
-                          as Map<String, dynamic>?; // Ensure it's a Map
-                  final contactName = contact?['name'] ?? "Unknown";
-                  final contactPhone = contact?['phone'] ?? "Unknown";
-
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: Colors.grey[200],
-                    child: ListTile(
-                      leading: Icon(
-                        isLent ? Icons.arrow_upward : Icons.arrow_downward,
-                        color: isLent ? Colors.green : Colors.red,
-                        size: 30,
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      title: Text(
-                        contactName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      color: Colors.grey[200],
+                      child: ListTile(
+                        leading: Icon(
+                          isLent ? Icons.arrow_upward : Icons.arrow_downward,
+                          color: isLent ? Colors.green : Colors.red,
+                          size: 30,
                         ),
-                      ),
-                      subtitle: Text(
-                        transaction['note'] ?? "No note",
-                        style: const TextStyle(fontSize: 14),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            "${isLent ? "+" : "-"}${transaction['amount']}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: isLent ? Colors.green : Colors.red,
+                        title: Text(
+                          contactName,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          transaction['note'] ?? "No note",
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "${isLent ? "+" : "-"}${transaction['amount']}",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isLent ? Colors.green : Colors.red,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            formattedDate,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
+                            const SizedBox(height: 4),
+                            Text(
+                              formattedDate,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (_) => Transaction(
+                                    contactName: contactName,
+                                    phone: contactPhone,
+                                  ),
+                            ),
+                          );
+                        },
                       ),
-                      onTap: () {
-                        // Navigate to TransactionPage with contact details
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => Transaction(
-                                  contactName: contactName,
-                                  phone: contactPhone,
-                                ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
+      ),
     );
   }
 }

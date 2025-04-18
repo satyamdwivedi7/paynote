@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:paynote/splashscreen.dart';
 import 'package:paynote/register.dart';
 import 'package:paynote/MainPage.dart';
+import 'package:paynote/helpers/routeobserver.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required before any async calls in main
@@ -17,11 +18,12 @@ Future<void> main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PayNote',
+      navigatorObservers: [routeObserver],
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.black,
@@ -118,7 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
         icon: const Icon(Icons.error, color: Colors.red),
         duration: const Duration(seconds: 3),
       ).show(context);
-    } finally {
+    } 
+    finally {
       userController.clear();
       passwordController.clear();
     }
@@ -184,7 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: ElevatedButton(
                 onPressed: login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
                   shadowColor: Colors.blueGrey,
                   elevation: 10,
