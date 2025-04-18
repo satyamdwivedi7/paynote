@@ -5,6 +5,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:paynote/main.dart';
 import 'package:paynote/MainPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,7 +20,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
   final LocalAuthentication auth = LocalAuthentication();
-  bool _isBiometricAvailable = false;
 
   @override
   void initState() {
@@ -25,6 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> checkBiometricAndNavigate() async {
+    await dotenv.load(fileName: ".env");
     await Future.delayed(const Duration(seconds: 2));
 
     final canCheckBiometrics = await auth.canCheckBiometrics;
@@ -47,22 +51,67 @@ class _SplashScreenState extends State<SplashScreen> {
       );
 
       if (didAuthenticate) {
-        // If biometric is successful, auto-login and go to MainPage
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainPage()),
-        );
+        await autoLogin(savedUsername, savedPassword);
         return;
       }
     }
 
-    // If biometric fails or not available or no saved credentials, go to login page
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const MyHomePage(title: 'PayNote'),
       ),
     );
+  }
+
+  Future<void> autoLogin(String username, String password) async {
+    final baseUri = dotenv.env['BASE_URI'];
+
+    if (baseUri == null || baseUri.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('BASE_URI not configured properly')),
+      );
+      return;
+    }
+
+    final url = Uri.parse("$baseUri/user/login");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"username": username, "password": password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data.containsKey('token') && data.containsKey('userId')) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', data['token']);
+          await prefs.setString('userId', data['userId']);
+
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainPage()),
+          );
+        } else {
+          throw Exception('Invalid response format.');
+        }
+      } else {
+        throw Exception('Login failed: ${response.body}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MyHomePage(title: 'PayNote'),
+        ),
+      );
+    }
   }
 
   @override
