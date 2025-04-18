@@ -207,7 +207,7 @@ class _AddTransactionState extends State<AddTransaction> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -242,6 +242,7 @@ class _AddTransactionState extends State<AddTransaction> {
                       ),
                     ],
                   ),
+                  const SizedBox(width: 20), // Space between the columns
                   Column(
                     children: [
                       IconButton(
@@ -275,28 +276,8 @@ class _AddTransactionState extends State<AddTransaction> {
                   ),
                 ],
               ),
-              const SizedBox(height: 30),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.edit, size: 20),
-                  label: const Text(
-                    'Pay debt',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: () {
-                    // Implement pay debt logic here
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xff457b9d),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 50),
+             
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
