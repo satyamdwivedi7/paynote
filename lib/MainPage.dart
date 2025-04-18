@@ -62,7 +62,7 @@ class _MainPageState extends State<MainPage> {
         activeIndex: _selectedIndex,
         gapLocation: GapLocation.center,
         notchSmoothness: NotchSmoothness.softEdge,
-        backgroundColor: Colors.grey,
+        backgroundColor: Colors.green,
         activeColor: Colors.blue,
         inactiveColor: Colors.white70,
         onTap: _onItemTapped,

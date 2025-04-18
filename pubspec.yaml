@@ -43,6 +43,21 @@ dependencies:
   permission_handler: ^12.0.0+1
   flutter_contacts: ^1.1.9+2
   animated_bottom_navigation_bar: ^1.4.0
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon.png"
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/icon.png
+  android: true
+  ios: true
+  fullscreen: true
 
 dev_dependencies:
   flutter_test:

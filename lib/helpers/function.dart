@@ -7,6 +7,7 @@ Future<void> pickContact(BuildContext context) async {
   final status = await Permission.contacts.request();
 
   if (!status.isGranted) {
+    
     showDialog(
       context: context,
       builder:
@@ -44,8 +45,9 @@ Future<void> pickContact(BuildContext context) async {
     ).showSnackBar(const SnackBar(content: Text("No contacts available")));
     return;
   }
-
+  
   showDialog(
+    
     context: context,
     builder: (_) => _ContactPickerDialog(contacts: contacts),
   );

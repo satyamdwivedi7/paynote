@@ -60,6 +60,7 @@ class _AddTransactionState extends State<AddTransaction> {
       setState(() {
         isLoading = false; // Stop loading
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Authentication token not found")),
       );

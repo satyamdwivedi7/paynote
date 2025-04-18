@@ -34,6 +34,7 @@ class _ContactPickerState extends State<ContactPicker> {
         _permissionDenied = true;
         _isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Contact permission denied")),
       );
@@ -53,6 +54,7 @@ class _ContactPickerState extends State<ContactPicker> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Failed to load contacts: $e")));
@@ -140,8 +142,9 @@ class _ContactPickerState extends State<ContactPicker> {
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) return const SizedBox();
                               final fullContact = snapshot.data!;
-                              if (fullContact.phones.isEmpty)
+                              if (fullContact.phones.isEmpty) {
                                 return const SizedBox();
+                              }
 
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 8),
@@ -176,9 +179,6 @@ class _ContactPickerState extends State<ContactPicker> {
                                           ),
                                           onTap: () {
                                             Navigator.pop(context);
-                                            print(
-                                              'Picked Contact -> Name: ${fullContact.displayName}, Phone: $sanitizedPhone',
-                                            );
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(

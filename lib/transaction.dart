@@ -72,7 +72,6 @@ class _TransactionState extends State<Transaction> {
       } else {
         final errorData = jsonDecode(response.body);
         if (!mounted) return; // Ensure the widget is still mounted
-        print(errorData);
         Flushbar(
           title: "Error",
           message: errorData['message'] ?? "Failed to load transactions.",
