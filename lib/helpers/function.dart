@@ -28,7 +28,7 @@ Future<void> pickContact(BuildContext context) async {
 
   List<Contact> contacts = [];
   try {
-    contacts = await FlutterContacts.getContacts(withProperties: true);
+    contacts = await FlutterContacts.getContacts(); // Only names, no properties
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(
@@ -89,7 +89,6 @@ class _ContactPickerBottomSheetState extends State<_ContactPickerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-
     return DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.85,
@@ -152,13 +151,11 @@ class _ContactPickerBottomSheetState extends State<_ContactPickerBottomSheet> {
   }
 
   Widget _buildContactTile(Contact contact) {
-    if (contact.phones.isEmpty) return const SizedBox();
-
     return Card(
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
+      child: ListTile(
         leading: CircleAvatar(
           radius: 22,
           backgroundColor: Colors.grey[300],
@@ -177,31 +174,53 @@ class _ContactPickerBottomSheetState extends State<_ContactPickerBottomSheet> {
           contact.displayName,
           style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
         ),
-        children:
-            contact.phones.map((phone) {
-              final sanitizedPhone = _sanitizePhoneNumber(phone.number);
-              if (sanitizedPhone.length != 10) return const SizedBox();
+        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+        onTap: () async {
+          final fullContact = await FlutterContacts.getContact(
+            contact.id,
+            withProperties: true,
+          );
+          if (fullContact == null || fullContact.phones.isEmpty) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("No phone number available for this contact."),
+              ),
+            );
+            return;
+          }
 
-              return ListTile(
-                title: Text(sanitizedPhone),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => AddTransaction(
-                            phone: sanitizedPhone,
-                            contactName: contact.displayName,
-                            type: "borrowed",
-                            amount: 0,
-                          ),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
+          final sanitizedPhones =
+              fullContact.phones
+                  .map((phone) => _sanitizePhoneNumber(phone.number))
+                  .where((number) => number.length == 10)
+                  .toList();
+
+          if (sanitizedPhones.isEmpty) {
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("No valid phone number found.")),
+            );
+            return;
+          }
+
+          final selectedPhone = sanitizedPhones.first;
+
+          if (!context.mounted) return;
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => AddTransaction(
+                    phone: selectedPhone,
+                    contactName: fullContact.displayName,
+                    type: "borrowed",
+                    amount: 0,
+                  ),
+            ),
+          );
+        },
       ),
     );
   }
